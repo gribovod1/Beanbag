@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.gribovod.beanbag.MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="18dp"
+        android:layout_height="17dp"
+        android:text="XY"
+        tools:text="XY"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/TV_XY"
+        android:layout_width="wrap_content"
+        android:layout_height="17dp"
+        android:text="0"
+        app:layout_constraintLeft_toRightOf="@+id/textView"
+        android:layout_marginLeft="18dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:text="XZ"
+        tools:text="XZ"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <TextView
+        android:id="@+id/TV_XZ"
+        android:layout_width="wrap_content"
+        android:layout_height="17dp"
+        android:text="0"
+        app:layout_constraintLeft_toRightOf="@+id/textView3"
+        android:layout_marginLeft="19dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/TV_XY" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:text="YZ"
+        tools:text="YZ"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/TV_YZ"
+        android:layout_width="wrap_content"
+        android:layout_height="17dp"
+        android:text="0"
+        app:layout_constraintLeft_toRightOf="@+id/textView5"
+        android:layout_marginLeft="19dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/TV_XZ" />
+
+</android.support.constraint.ConstraintLayout>
