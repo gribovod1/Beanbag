@@ -18,6 +18,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView xzView;
     private TextView zyView;
 
+    int durationMs = 1000;
+    int playCount;
+    int currentCount;
+    int count;
+    short[] samples;
+    AudioTrack track;
+    int sampleRate = 48000;  // 44100 Hz
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,8 +36,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         xyView = (TextView) findViewById(R.id.TV_XY);  //
         xzView = (TextView) findViewById(R.id.TV_XZ);  // Наши текстовые поля для вывода показаний
         zyView = (TextView) findViewById(R.id.TV_YZ);  //
-        AudioTrack at = generateTone(400, 500);
-        at.play();
+
+        count = (int)( sampleRate * 2.0 * (durationMs / 1000.0)) & ~1;
+        samples = new short[count];
+      /*  AudioTrack at = generateTone(400, 500);
+        at.play();*/
     }
 
     @Override
@@ -39,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI );
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST );
     }
 
     @Override
@@ -52,9 +63,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event) { //Изменение показаний датчиков
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) { //Если акселерометр
             accelData = event.values.clone();
-            xyView.setText(String.valueOf(accelData[0]));
-            xzView.setText(String.valueOf(accelData[1]));
-            zyView.setText(String.valueOf(accelData[2]));
+            samples[currentCount] = (short) ((Math.sqrt(accelData[0]*accelData[0]+accelData[1]*accelData[1]+accelData[2]*accelData[2]))*10000);
+            xyView.setText(String.valueOf(samples[currentCount]));
+            currentCount++;
+            if (currentCount >= count)
+            {
+                track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate,
+                        AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
+                        count * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
+                track.write(samples, 0, count);
+                track.play();
+                playCount++;
+            }
+
+            xzView.setText(String.valueOf(playCount));
+            zyView.setText(String.valueOf(currentCount));
         }
     }
 
