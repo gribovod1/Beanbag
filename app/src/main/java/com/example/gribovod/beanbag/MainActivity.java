@@ -1,46 +1,70 @@
 package com.example.gribovod.beanbag;
 
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.*;
-import android.media.*;
+import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.RadioButton;
 import android.widget.TextView;
+
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager mSensorManager;
     private Sensor mOrientation;
 
-    private float[] accelData;           //Данные с акселерометра
+    private float[] prevAccelData;           //Данные с акселерометра
 
     private TextView xyView;
     private TextView xzView;
     private TextView zyView;
+    private Button button;
+    private RadioButton rButton;
 
-    int durationMs = 1000;
     int playCount;
     int currentCount;
-    int count;
-    short[] samples;
-    AudioTrack track;
-    int sampleRate = 48000;  // 44100 Hz
+    SamplePlayer sp;
+    boolean isRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE); // Получаем менеджер сенсоров
-        mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // Получаем датчик положения
-
         xyView = (TextView) findViewById(R.id.TV_XY);  //
         xzView = (TextView) findViewById(R.id.TV_XZ);  // Наши текстовые поля для вывода показаний
         zyView = (TextView) findViewById(R.id.TV_YZ);  //
+        button = (Button) findViewById(R.id.ButtonStart);
+        rButton = (RadioButton) findViewById(R.id.RB_Noise);
 
-        count = (int)( sampleRate * 2.0 * (durationMs / 1000.0)) & ~1;
-        samples = new short[count];
-      /*  AudioTrack at = generateTone(400, 500);
-        at.play();*/
+        sp = new SamplePlayer();
+       // startService(new Intent(this, ShakeService.class));
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE); // Получаем менеджер сенсоров
+        mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // Получаем датчик положения
+
+    }
+
+    public void rbNoiseClick(View v){
+        if (rButton.isChecked())
+            sp.setSoundMode(0);
+        else
+            sp.setSoundMode(1);
+    }
+
+    public void startButtonClick(View v) {
+        if (!isRunning) {
+            isRunning = true;
+            button.setText("Stop");
+            sp.start();
+        } else {
+            button.setText("Start");
+            isRunning = false;
+            sp.setFinishFlag();
+        }
     }
 
     @Override
@@ -50,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST );
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -62,56 +86,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) { //Изменение показаний датчиков
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) { //Если акселерометр
-            accelData = event.values.clone();
-            samples[currentCount] = (short) ((Math.sqrt(accelData[0]*accelData[0]+accelData[1]*accelData[1]+accelData[2]*accelData[2]))*10000);
-            xyView.setText(String.valueOf(samples[currentCount]));
-            currentCount++;
-            if (currentCount >= count)
-            {
-                track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate,
-                        AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
-                        count * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
-                track.write(samples, 0, count);
-                track.play();
-                playCount++;
+            float[] AccelData = event.values.clone();
+            if (prevAccelData != null) {
+                AccelData[0] -= prevAccelData[0];
+                AccelData[1] -= prevAccelData[1];
+                AccelData[2] -= prevAccelData[2];
+                double modulation = Math.sqrt(AccelData[0] * AccelData[0] + AccelData[1] * AccelData[1] + AccelData[2] * AccelData[2]);
+                currentCount++;
+                if (isRunning) {
+                    try {
+                        sp.synch.exchange(modulation);
+                    } catch (Exception e) {
+                    }
+                }
+                xyView.setText(String.valueOf(modulation));
+                xzView.setText(String.valueOf(playCount));
+                zyView.setText(String.valueOf(currentCount));
             }
-
-            xzView.setText(String.valueOf(playCount));
-            zyView.setText(String.valueOf(currentCount));
+            prevAccelData = event.values.clone();
         }
-    }
-
-    private short[] generateTone(double freqHz, int durationMs, int sampleRate)
-    {
-        int count = (int)( sampleRate * 2.0 * (durationMs / 1000.0)) & ~1;
-        short[] samples = new short[count];
-
-        for(int i = 0; i < count; i += 2){
-            short sample = (short)(Math.sin(2 * Math.PI * i / (sampleRate / freqHz)) * 0x7FFF);
-            samples[i + 0] = sample;
-            samples[i + 1] = sample;
-        }
-/*
-        AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate,
-                AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
-                count * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
-
-        track.write(samples, 0, count);*/
-
-        return samples;
-    }
-
-    private short[] generateNoise(double freqHz, int durationMs, int sampleRate)
-    {
-        int count = (int)( sampleRate * 2.0 * (durationMs / 1000.0)) & ~1;
-        short[] samples = new short[count];
-
-        for(int i = 0; i < count; i += 2){
-            short sample = (short)(Math.sin(2 * Math.PI * i / (sampleRate / freqHz)) * 0x7FFF);
-            samples[i + 0] = sample;
-            samples[i + 1] = sample;
-        }
-
-        return samples;
     }
 }
