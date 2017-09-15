@@ -1,7 +1,6 @@
 package com.example.gribovod.beanbag;
 
 import android.media.*;
-
 import java.util.concurrent.Exchanger;
 
 /**
@@ -24,7 +23,7 @@ public class SamplePlayer extends Thread {
     public SamplePlayer() {
         finishFlag = false;
         bufferSize = AudioTrack.getMinBufferSize(sampleRate,
-                AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+                AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)*10;
         set_raw_data();
         data = new short[bufferSize];
     }
@@ -36,14 +35,22 @@ public class SamplePlayer extends Thread {
     public void run() {
         try {
             AudioTrack aTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                    16000, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
+                    sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                     bufferSize, AudioTrack.MODE_STREAM);
             aTrack.play();
 
             while (!finishFlag) {
                 double modulation = synch.exchange(null);
+                if (modulation>=0)
+                    modulation+=1;
+                else
+                    modulation = 1/Math.abs(modulation);
                 for (int i = 0; i < data.length; i++) {
-                    data[i] = (short) (raw[i] * modulation);
+                    if (i*modulation > data.length)
+                        data[i] = raw[(int)(i * modulation % data.length)];
+                    else
+                        data[i] = raw[(int)(i * modulation)];
+//                    data[i] = (short) (raw[i] * modulation);
                 }
                 aTrack.write(data, 0, data.length);
             }
