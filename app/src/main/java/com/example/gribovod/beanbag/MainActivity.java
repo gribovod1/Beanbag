@@ -81,10 +81,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private AudioTrack generateTone(double freqHz, int durationMs)
+    private short[] generateTone(double freqHz, int durationMs, int sampleRate)
     {
-        int sampleRate = 48000;  // 44100 Hz
+        int count = (int)( sampleRate * 2.0 * (durationMs / 1000.0)) & ~1;
+        short[] samples = new short[count];
 
+        for(int i = 0; i < count; i += 2){
+            short sample = (short)(Math.sin(2 * Math.PI * i / (sampleRate / freqHz)) * 0x7FFF);
+            samples[i + 0] = sample;
+            samples[i + 1] = sample;
+        }
+/*
+        AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate,
+                AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
+                count * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
+
+        track.write(samples, 0, count);*/
+
+        return samples;
+    }
+
+    private short[] generateNoise(double freqHz, int durationMs, int sampleRate)
+    {
         int count = (int)( sampleRate * 2.0 * (durationMs / 1000.0)) & ~1;
         short[] samples = new short[count];
 
@@ -94,12 +112,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             samples[i + 1] = sample;
         }
 
-        AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate,
-                AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
-                count * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
-
-        track.write(samples, 0, count);
-
-        return track;
+        return samples;
     }
 }
