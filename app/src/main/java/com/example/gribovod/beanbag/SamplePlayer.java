@@ -18,7 +18,6 @@ public class SamplePlayer extends Thread {
     private short[] data;
     private int sampleRate = 16000;
     private double modulation = 0;
-
     public SamplePlayer() {
         finishFlag = false;
         bufferSize = AudioTrack.getMinBufferSize(sampleRate,
@@ -45,15 +44,7 @@ public class SamplePlayer extends Thread {
             aTrack.play();
 
             while (!finishFlag) {
-               /* if (modulation>=0)
-                    modulation+=1;
-                else
-                    modulation = 1/Math.abs(modulation);*/
                 for (int i = 0; i < data.length; i++) {
-                    /*if (i*modulation > data.length)
-                        data[i] = raw[(int)(i * modulation % data.length)];
-                    else
-                        data[i] = raw[(int)(i * modulation)];*/
                     data[i] = (short) (raw[i] * modulation);
                 }
                 aTrack.write(data, 0, data.length);
@@ -89,6 +80,7 @@ public class SamplePlayer extends Thread {
             set_raw_data();
         }
     }
+
 
     private void set_raw_data()
     {
