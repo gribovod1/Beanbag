@@ -1,9 +1,7 @@
 package com.example.gribovod.beanbag;
 
 import android.content.Context;
-import android.content.Intent;
 import android.hardware.*;
-import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -64,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             button.setText("Start");
             isRunning = false;
             sp.setFinishFlag();
+            sp = new SamplePlayer();
+            rbNoiseClick(v);
         }
     }
 
@@ -91,17 +91,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 AccelData[0] -= prevAccelData[0];
                 AccelData[1] -= prevAccelData[1];
                 AccelData[2] -= prevAccelData[2];
-                double modulation = Math.sqrt(AccelData[0] * AccelData[0] + AccelData[1] * AccelData[1] + AccelData[2] * AccelData[2]);
+                double length = Math.sqrt(AccelData[0] * AccelData[0] + AccelData[1] * AccelData[1] + AccelData[2] * AccelData[2]);
+                double modulation = Math.atan(length*2 - 1) / Math.PI + 0.2;
+                if (modulation < 0){
+                    modulation = 0;
+                }
                 currentCount++;
                 if (isRunning) {
-                    try {
-                        sp.synch.exchange(modulation);
-                    } catch (Exception e) {
-                    }
+                    sp.setModulation(modulation);
                 }
-                xyView.setText(String.valueOf(modulation));
-                xzView.setText(String.valueOf(playCount));
-                zyView.setText(String.valueOf(currentCount));
+                xyView.setText(String.valueOf(length));
+                xzView.setText(String.valueOf(modulation));
+                zyView.setText(String.valueOf(sp.bufferSize));
             }
             prevAccelData = event.values.clone();
         }
