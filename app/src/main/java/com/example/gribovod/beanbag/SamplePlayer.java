@@ -48,7 +48,6 @@ public class SamplePlayer extends Thread {
                     data[i] = (short) (raw[i] * modulation);
                 }
                 aTrack.write(data, 0, data.length);
-                sleep((long)(bufferSize/(double)sampleRate*1000));
             }
 
             aTrack.stop();
