@@ -21,7 +21,7 @@ public class SamplePlayer extends Thread {
     public SamplePlayer() {
         finishFlag = false;
         bufferSize = AudioTrack.getMinBufferSize(sampleRate,
-                AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)*2;
+                AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
         set_raw_data();
         data = new short[bufferSize];
     }
@@ -58,7 +58,7 @@ public class SamplePlayer extends Thread {
     private short[] generateNoise(int count) {
         short[] samples = new short[count];
         for (int i = 0; i < count; i++) {
-            samples[i] = (short) ((Math.random() - 0.5) * 0x7FFF/* * (1 - i/(double)count)*/);
+            samples[i] = (short) ((Math.random() - 0.5) * 0x7FFF * (1 - i/(double)count));
         }
         return samples;
     }
@@ -66,7 +66,7 @@ public class SamplePlayer extends Thread {
     private short[] generateTone(int count, double freqHz) {
         short[] samples = new short[count];
         for (int i = 0; i < count; i++) {
-            short sample = (short) (Math.sin(2 * Math.PI * i / (sampleRate / freqHz)) * 0x7FFF /** (1 - i/(double)count)*/);
+            short sample = (short) (Math.sin(2 * Math.PI * i / (sampleRate / freqHz)) * 0x7FFF * (1 - i/(double)count));
             samples[i] = sample;
         }
         return samples;

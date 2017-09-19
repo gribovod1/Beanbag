@@ -25,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
             ShakeService.LocalBinder binder = (ShakeService.LocalBinder) service;
             shaker = binder.getService();
             mBound = true;

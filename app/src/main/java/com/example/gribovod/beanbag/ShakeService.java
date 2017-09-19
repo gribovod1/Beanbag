@@ -55,7 +55,7 @@ public class ShakeService extends Service implements SensorEventListener {
     public void activeSensor() {
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE); // Получаем менеджер сенсоров
         accel = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // Получаем датчик положения
-        mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
